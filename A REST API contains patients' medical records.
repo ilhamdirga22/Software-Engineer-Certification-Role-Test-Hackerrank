@@ -1,0 +1,43 @@
+
+
+import urllib.request
+import json
+from decimal import Decimal, ROUND_HALF_UP
+
+def getAverageTemperatureForUser(userId):
+    page = 1
+    total_temp = Decimal('0')
+    total_count = 0
+
+    while True:
+        url = f"https://jsonmock.hackerrank.com/api/medical_records?userId={userId}&page={page}"
+        with urllib.request.urlopen(url) as response:
+            result = json.loads(response.read().decode())
+        
+        data = result.get("data", [])
+        if not data and page == 1:
+            return "0"
+
+        for record in data:
+            try:
+                temp = record["vitals"]["bodyTemperature"]
+                total_temp += Decimal(str(temp))
+                total_count += 1
+            except:
+                continue
+
+        if page >= result.get("total_pages", 0):
+            break
+        page += 1
+
+    if total_count == 0:
+        return "0"
+    
+    average = total_temp / total_count
+    rounded_average = average.quantize(Decimal('0.1'), rounding=ROUND_HALF_UP)
+    return str(rounded_average)
+
+# Required for custom testing in HackerRank
+if __name__ == '__main__':
+    user_id = int(input())
+    print(getAverageTemperatureForUser(user_id))
